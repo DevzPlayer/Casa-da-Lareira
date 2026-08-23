@@ -1,0 +1,14 @@
+.env
+node_modules/
+*.log
+tmp/
+temp/
+cache/
+recordings/
+downloads/
+storage/
+*.mp4
+*.mkv
+*.ts
+*.m3u8
+.DS_Store
