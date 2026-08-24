@@ -12,3 +12,19 @@ storage/
 *.ts
 *.m3u8
 .DS_Store
+
+# Binarios locais
+bin/
+
+# Certificados gerados localmente pelo MediaMTX
+auto.crt
+auto.key
+
+# Configuração real/local
+mediamtx/mediamtx.runtime.yml
+
+# Runtime
+.mediamtx.pid
+mediamtx.log
+camera1.mp4
+*.pid

@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BIN="$ROOT_DIR/bin/mediamtx"
+CONFIG="$ROOT_DIR/mediamtx/mediamtx.runtime.yml"
+PID_FILE="$ROOT_DIR/.mediamtx.pid"
+LOG_FILE="$ROOT_DIR/mediamtx.log"
+
+case "${1:-}" in
+  start)
+    if [[ ! -x "$BIN" ]]; then
+      echo "❌ MediaMTX não encontrado em: $BIN"
+      exit 1
+    fi
+
+    if [[ ! -f "$CONFIG" ]]; then
+      echo "❌ Nenhuma câmera configurada."
+      echo
+      echo "Use:"
+      echo "./scripts/registrar-camera.sh nome 'rtsp://usuario:senha@IP:554/stream'"
+      exit 1
+    fi
+
+    if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      echo "🔥 Casa da Lareira já está em execução."
+      exit 0
+    fi
+
+    nohup "$BIN" "$CONFIG" > "$LOG_FILE" 2>&1 &
+    echo $! > "$PID_FILE"
+
+    echo
+    echo "🔥 CASA DA LAREIRA INICIADA"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo
+    echo "PID: $(cat "$PID_FILE")"
+    echo "Logs: $LOG_FILE"
+    ;;
+
+  stop)
+    if [[ -f "$PID_FILE" ]]; then
+      PID="$(cat "$PID_FILE")"
+
+      if kill -0 "$PID" 2>/dev/null; then
+        kill "$PID"
+        echo "🔥 Casa da Lareira encerrada."
+      else
+        echo "ℹ️ Processo não está mais em execução."
+      fi
+
+      rm -f "$PID_FILE"
+    else
+      echo "ℹ️ Nenhum processo registrado."
+    fi
+    ;;
+
+  status)
+    if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      echo "🔥 Casa da Lareira está ONLINE."
+      echo "PID: $(cat "$PID_FILE")"
+    else
+      echo "⭕ Casa da Lareira está OFFLINE."
+    fi
+    ;;
+
+  logs)
+    if [[ -f "$LOG_FILE" ]]; then
+      tail -f "$LOG_FILE"
+    else
+      echo "ℹ️ Ainda não existem logs."
+    fi
+    ;;
+
+  *)
+    echo
+    echo "🔥 Casa da Lareira"
+    echo
+    echo "Comandos:"
+    echo "  ./casa-da-lareira start"
+    echo "  ./casa-da-lareira stop"
+    echo "  ./casa-da-lareira status"
+    echo "  ./casa-da-lareira logs"
+    echo
+    ;;
+esac
